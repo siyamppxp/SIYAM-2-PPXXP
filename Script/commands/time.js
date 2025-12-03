@@ -27,11 +27,11 @@ module.exports.run = async function({ api, event }) {
  const currentTime = moment.tz("Asia/Dhaka").format("『D/MM/YYYY』 【hh:mm:ss】");
 
  const imgLinks = [
- "https://i.imgur.com/EuiRi4v.jpeg",
- "https://i.imgur.com/ZjxQx17.jpeg",
- "https://i.imgur.com/dOO6Af5.jpeg",
- "https://i.imgur.com/WMIngcC.jpeg",
- "https://i.imgur.com/2dJSfXq.jpeg"
+ "https://imgur.com/KIw8yWI.jpeg,
+ "https://imgur.com/KIw8yWI.jpeg",
+ "https://imgur.com/KIw8yWI.jpeg",
+ "https://imgur.com/KIw8yWI.jpeg",
+ "https://imgur.com/KIw8yWI.jpeg"
  ];
 
  const imgPath = __dirname + "/cache/time.jpg";
@@ -45,7 +45,7 @@ module.exports.run = async function({ api, event }) {
 
 ⏱️ 𝗕𝗼𝘁 𝗨𝗽𝘁𝗶𝗺𝗲: ${hours} hour(s), ${minutes} minute(s), ${seconds} second(s)
 
-💠𝗕𝗢𝗧 𝗔𝗗𝗠𝗜𝗡 𝗦𝗔𝗛𝗔𝗗𝗔𝗧~𝗦𝗔𝗛𝗨💠
+💠𝗕𝗢𝗧 𝗔𝗗𝗠𝗜𝗡 𝐒𝐈𝐘𝐀𝐌💠
 
 
 ¶────██████────¶
@@ -63,7 +63,7 @@ module.exports.run = async function({ api, event }) {
 ¶────◥████◤────¶
 ¶─────◥██◤─────¶
 
-🌟 ─꯭─⃝‌‌𝐒𝐡𝐚𝐡𝐚𝐝𝐚𝐭 𝐂𝐡𝐚𝐭 𝐁𝐨𝐭 🌟`;
+🌟 ─꯭─⃝‌‌𝐒𝐈𝐘𝐀𝐌 𝐂𝐡𝐚𝐭 𝐁𝐨𝐭 🌟`;
 
  const callback = () => {
  api.sendMessage({
