@@ -6,7 +6,7 @@ module.exports = {
     name: "4k",
     version: "1.0.0",
     hasPermssion: 0,
-    credits: "SHAHADAT SAHU", //don't change credit
+    credits: "SIYAM FUCKS", //don't change credit
     description: "Enhance Photo - Reply with image to upscale",
     commandCategory: "Image Editing Tools",
     usages: "Reply to an image",
