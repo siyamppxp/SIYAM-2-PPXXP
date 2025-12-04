@@ -15,7 +15,7 @@ module.exports = {
     description: "Meta AI Image (grid + reply select)",
     usages: ".meta a dog",
     commandCategory: "AI IMAGE",
-    cooldowns: 10
+    cooldowns: 5
   },
 
   run: async ({ api, event, args }) => {
