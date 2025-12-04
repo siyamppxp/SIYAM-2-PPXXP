@@ -1,174 +1,173 @@
 const fs = require("fs-extra");
 const path = require("path");
+const axios = require("axios");
 
-const dataPath = path.join(__dirname, "themeData.json");
+const dataPath = path.join(__dirname, "themeDB.json");
 
-// create data file
+const THEMES = [
+  { id: "196241301102133", name: "Ocean Blue" },
+  { id: "206470323178566", name: "Sunset Pink" },
+  { id: "174636906462322", name: "Fire Red" },
+  { id: "234473941", name: "Messenger Dark" },
+  { id: "182550717762552", name: "Neon Purple" }
+];
+
+// Auto add 1000 dummy ids
+for (let i = 1; i <= 1000; i++) {
+  THEMES.push({
+    id: `${900000000 + i}`,
+    name: `Custom Theme #${i}`,
+    image: `https://picsum.photos/seed/theme${i}/400/300`
+  });
+}
+
+// Create DB
 if (!fs.existsSync(dataPath)) {
   fs.writeJsonSync(dataPath, {
-    autoRotate: {},
-    daily: {},
-    log: {}
+    auto: {},
+    history: {},
+    votes: {},
+    packs: []
   }, { spaces: 2 });
 }
 
-// THEME DATABASE (1000+ ADD KORA JABE)
-const THEMES = [
-  { id: "196241301102133", name: "Default Blue" },
-  { id: "2147642772135635", name: "Red" },
-  { id: "174636906462322", name: "Pink" },
-  { id: "305048346944095", name: "Purple" },
-  { id: "772462046107572", name: "Green" },
-  { id: "180711032274338", name: "Orange" },
-  { id: "287364294943462", name: "Yellow" },
-  { id: "243563450075529", name: "Teal" },
-  { id: "980963458080781", name: "Black" },
-  { id: "234426103521355", name: "Light Blue" }
-];
-
-// check admin
-async function isAdmin(api, threadID, userID) {
-  const info = await api.getThreadInfo(threadID);
-  return info.adminIDs.some(a => a.id === userID);
+function getDB() {
+  return fs.readJsonSync(dataPath);
 }
 
-// save
-function saveData(data) {
+function saveDB(data) {
   fs.writeJsonSync(dataPath, data, { spaces: 2 });
 }
 
-// auto engine (merger complete)
-setInterval(async () => {
-  let data = fs.readJsonSync(dataPath);
-
-  for (let tid in data.autoRotate) {
-    const random = THEMES[Math.floor(Math.random() * THEMES.length)];
-    try {
-      await global.api.changeThreadColor(random.id, tid);
-      data.log[tid] = random.name;
-      saveData(data);
-      console.log(`AutoTheme → ${tid} : ${random.name}`);
-    } catch (e) {
-      console.log("Theme error:", e.message);
+// AUTO ENGINE
+function startAuto(api) {
+  setInterval(async () => {
+    let db = getDB();
+    for (let tid in db.auto) {
+      let t = THEMES[Math.floor(Math.random() * THEMES.length)];
+      try {
+        await api.changeThreadColor(t.id, tid);
+        db.history[tid] = db.history[tid] || [];
+        db.history[tid].push({ name: t.name, time: Date.now() });
+        saveDB(db);
+      } catch (e) {
+        console.log("Theme Error:", e.message);
+      }
     }
-  }
-}, 30 * 60 * 1000); // 30 min rotate
+  }, 60 * 60 * 1000); // hourly
+}
 
-// DAILY SYSTEM
-setInterval(async () => {
-  const data = fs.readJsonSync(dataPath);
-  const now = new Date().getHours();
-
-  if (now !== 6) return; // every morning 6am
-
-  for (let tid in data.daily) {
-    const random = THEMES[Math.floor(Math.random() * THEMES.length)];
-    try {
-      await global.api.changeThreadColor(random.id, tid);
-      data.log[tid] = random.name;
-      saveData(data);
-    } catch {}
-  }
-
-}, 60 * 60 * 1000);
-
-// COMMAND HANDLER
 module.exports = {
   config: {
     name: "changetheme",
-    aliases: ["theme"],
-    version: "FINAL-PRO",
-    author: "ONLY SIYAM BOT",
+    aliases: ["theme", "aitheme"],
+    version: "ULTIMATE",
+    author: "SIYAM",
     role: 0,
-    description: "Advanced Messenger group theme system",
-    category: "group",
-    guide: {
-      en: `.changetheme list
-.changetheme apply <id>
-.changetheme random
-.changetheme rotate on/off
-.changetheme daily on/off
-.changetheme log`
-    }
+    shortDescription: "Advanced theme system with AI, auto, vote, history",
+    guide: `
+.changetheme
+.changetheme set <number>
+.changetheme auto on/off
+.changetheme history
+.changetheme vote <number>
+.changetheme votes
+.changetheme pack add <id> <name>
+`
+  },
+
+  onLoad() {
+    console.log("✅ SIYAM ULTIMATE CHANGETHEME LOADED");
   },
 
   onStart: async function ({ api, event, args, message }) {
-    const { threadID, senderID } = event;
-    let data = fs.readJsonSync(dataPath);
 
-    // ADMIN ONLY
-    if (!(await isAdmin(api, threadID, senderID)))
-      return message.reply("❌ Admin only command.");
+    if (!global.__themeAuto) {
+      global.__themeAuto = true;
+      startAuto(api);
+    }
+
+    let db = getDB();
+    let tid = event.threadID;
+    let cmd = args[0];
 
     // LIST
-    if (args[0] === "list") {
-      let txt = "🎨 AVAILABLE THEMES:\n\n";
-      THEMES.forEach(t => txt += `• ${t.name} → ${t.id}\n`);
-      return message.reply(txt);
+    if (!cmd) {
+      let list = "🎨 THEME LIST\n\n";
+      THEMES.slice(0, 20).forEach((t, i) => list += `${i + 1}. ${t.name}\n`);
+      return message.reply(list + "\nUse: .changetheme set <no>");
     }
 
-    // APPLY
-    if (args[0] === "apply") {
-      const id = args[1];
-      if (!id) return message.reply("Use: .changetheme apply <themeID>");
-      await api.changeThreadColor(id, threadID);
-      data.log[threadID] = id;
-      saveData(data);
-      return message.reply("✅ Theme applied!");
+    // SET
+    if (cmd === "set") {
+      let n = parseInt(args[1]);
+      if (!n || !THEMES[n - 1]) return message.reply("❌ Invalid number!");
+      let t = THEMES[n - 1];
+      await api.changeThreadColor(t.id, tid);
+
+      db.history[tid] = db.history[tid] || [];
+      db.history[tid].push({ name: t.name, time: Date.now() });
+
+      saveDB(db);
+      return message.reply(`✅ Theme applied: ${t.name}`);
     }
 
-    // RANDOM
-    if (args[0] === "random") {
-      const random = THEMES[Math.floor(Math.random() * THEMES.length)];
-      await api.changeThreadColor(random.id, threadID);
-      data.log[threadID] = random.name;
-      saveData(data);
-      return message.reply(`🎯 Random theme: ${random.name}`);
-    }
-
-    // ROTATE
-    if (args[0] === "rotate") {
+    // AUTO
+    if (cmd === "auto") {
       if (args[1] === "on") {
-        data.autoRotate[threadID] = true;
-        saveData(data);
-        return message.reply("🔁 Auto rotate enabled.");
+        db.auto[tid] = true;
+        saveDB(db);
+        return message.reply("✅ Auto rotation ON!");
       }
       if (args[1] === "off") {
-        delete data.autoRotate[threadID];
-        saveData(data);
-        return message.reply("⛔ Auto rotate disabled.");
+        delete db.auto[tid];
+        saveDB(db);
+        return message.reply("❌ Auto rotation OFF!");
       }
     }
 
-    // DAILY
-    if (args[0] === "daily") {
-      if (args[1] === "on") {
-        data.daily[threadID] = true;
-        saveData(data);
-        return message.reply("📅 Daily auto change enabled.");
-      }
-      if (args[1] === "off") {
-        delete data.daily[threadID];
-        saveData(data);
-        return message.reply("⛔ Daily change off.");
-      }
+    // HISTORY
+    if (cmd === "history") {
+      let h = db.history[tid] || [];
+      if (!h.length) return message.reply("No history yet.");
+
+      let text = "🕘 THEME HISTORY\n";
+      h.slice(-10).reverse().forEach((x, i) => {
+        text += `${i + 1}. ${x.name} - ${new Date(x.time).toLocaleString()}\n`;
+      });
+      return message.reply(text);
     }
 
-    // LOG
-    if (args[0] === "log") {
-      const log = data.log[threadID] || "No change yet";
-      return message.reply(`📝 Last Theme: ${log}`);
+    // VOTE
+    if (cmd === "vote") {
+      let n = args[1];
+      if (!THEMES[n - 1]) return message.reply("Invalid theme.");
+      db.votes[n] = (db.votes[n] || 0) + 1;
+      saveDB(db);
+      return message.reply(`✅ Voted for ${THEMES[n - 1].name}`);
     }
 
-    // HELP
-    return message.reply(
-      "🎨 CHANGETHEME PRO MENU\n\n" +
-      ".changetheme list\n" +
-      ".changetheme apply <themeID>\n" +
-      ".changetheme random\n" +
-      ".changetheme rotate on/off\n" +
-      ".changetheme daily on/off\n" +
-      ".changetheme log"
-    );
+    // SHOW VOTES
+    if (cmd === "votes") {
+      let text = "🗳️ THEME VOTES\n";
+      Object.keys(db.votes).forEach(k => {
+        if (THEMES[k - 1])
+          text += `${THEMES[k - 1].name}: ${db.votes[k]} votes\n`;
+      });
+      return message.reply(text || "No votes.");
+    }
+
+    // THEME PACK ADD
+    if (cmd === "pack" && args[1] === "add") {
+      let id = args[2];
+      let name = args.slice(3).join(" ");
+      if (!id || !name) return message.reply("Format: pack add <id> <name>");
+      THEMES.push({ id, name });
+      db.packs.push({ id, name });
+      saveDB(db);
+      return message.reply("✅ Pack added!");
+    }
+
+    return message.reply("❓ Unknown command.");
   }
 };
