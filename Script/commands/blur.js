@@ -1,4 +1,4 @@
-// ফাইলের নাম: blur.js  (commands ফোল্ডারে রাখো)
+// ফাইলের নাম: effects.js  (commands ফোল্ডারে রাখো)
 const { loadImage, createCanvas } = require("canvas");
 const axios = require("axios");
 const fs = require("fs-extra");
@@ -6,66 +6,92 @@ const path = require("path");
 
 module.exports = {
   config: {
-    name: "blur",
-    version: "2.0",
+    name: "effects",
+    aliases: ["blur", "blur2", "blur3", "dream", "ghost"],
+    version: "3.0",
     hasPermssion: 0,
     credits: "Siyam Pro",
-    description: "রিপ্লাই করে ছবিতে সুন্দর ব্লার ইফেক্ট দিবে",
-    usages: "কোনো ছবিতে রিপ্লাই দিয়ে .blur লিখো",
+    description: "ছবিতে বিভিন্ন প্রো ইফেক্ট (blur, dream, ghost)",
     commandCategory: "IMAGE EDIT",
-    cooldowns: 3
+    usages: "কোনো ছবিতে রিপ্লাই দিয়ে লিখো: .blur / .blur2 / .blur3 / .dream / .ghost",
+    cooldowns: 4
   },
 
-  run: async function({ api, event }) {
-    // চেক করো রিপ্লাই আছে কি না
-    if (!event.messageReply || !event.messageReply.attachments || event.messageReply.attachments.length === 0) {
-      return api.sendMessage("❌ কোনো ছবিতে রিপ্লাই করে .blur লিখো!", event.threadID);
+  run: async function({ api, event, args }) {
+    const cmd = event.body.toLowerCase().split(" ")[0].slice(1); // .blur, .dream ইত্যাদি
+
+    if (!event.messageReply || !event.messageReply.attachments?.[0]?.url) {
+      return api.sendMessage("❌ কোনো ছবিতে রিপ্লাই দিয়ে লিখো!", event.threadID);
     }
 
-    const attachment = event.messageReply.attachments[0];
-    if (attachment.type !== "photo") {
-      return api.sendMessage("❌ শুধু ছবিতেই কাজ করে!", event.threadID);
-    }
-
-    const waitMsg = await api.sendMessage("🌀 ব্লার করতেছি... ৫-১০ সেকেন্ড লাগবে!", event.threadID);
+    const url = event.messageReply.attachments[0].url;
+    const wait = await api.sendMessage("🌀 ইফেক্ট লাগাচ্ছি... একটু অপেক্ষা করো!", event.threadID);
 
     try {
-      // ছবি ডাউনলোড
-      const response = await axios.get(attachment.url, { responseType: "arraybuffer" });
-      const image = await loadImage(response.data);
-
-      // Canvas তৈরি
-      const canvas = createCanvas(image.width, image.height);
+      const { data } = await axios.get(url, { responseType: "arraybuffer" });
+      const img = await loadImage(data);
+      const canvas = createCanvas(img.width, img.height);
       const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
 
-      // আসল ছবি আঁকো
-      ctx.drawImage(image, 0, 0);
+      // বিভিন্ন ইফেক্ট
+      switch (cmd) {
+        case "blur":
+          ctx.filter = "blur(12px)";
+          ctx.drawImage(img, 0, 0);
+          break;
 
-      // ব্লার ইফেক্ট (১৫px খুব সুন্দর লাগে)
-      ctx.filter = "blur(15px)";
-      ctx.drawImage(image, 0, 0);
+        case "blur2":
+          ctx.filter = "blur(25px)";
+          ctx.drawImage(img, 0, 0);
+          break;
 
-      // একটু ড্রিমি লুকের জন্য (অপশনাল)
-      ctx.globalAlpha = 0.7;
-      ctx.filter = "none";
-      ctx.drawImage(image, 0, 0);
+        case "blur3":
+          ctx.filter = "blur(45px)";
+          ctx.drawImage(img, 0, 0);
+          break;
 
-      // JPEG হিসেবে সেভ করো
-      const outputPath = path.join(__dirname, "cache", `blur_${event.senderID}_${Date.now()}.jpg`);
+        case "dream":
+          ctx.filter = "blur(15px) brightness(1.2)";
+          ctx.drawImage(img, 0, 0);
+          ctx.globalAlpha = 0.6;
+          ctx.filter = "none";
+          ctx.drawImage(img, 0, 0);
+          break;
+
+        case "ghost":
+          ctx.filter = "blur(20px) contrast(150%) invert(80%)";
+          ctx.drawImage(img, 0, 0);
+          ctx.globalAlpha = 0.7;
+          ctx.filter = "none";
+          ctx.drawImage(img, 0, 0);
+          break;
+
+        default:
+          ctx.filter = "blur(15px)";
+          ctx.drawImage(img, 0, 0);
+      }
+
+      const outputPath = path.join(__dirname, "cache", `${cmd}_${Date.now()}.jpg`);
       await fs.ensureDir(path.dirname(outputPath));
       fs.writeFileSync(outputPath, canvas.toBuffer("image/jpeg", { quality: 95 }));
 
-      // পাঠাও
-      api.unsendMessage(waitMsg.messageID);
+      api.unsendMessage(wait.messageID);
       api.sendMessage({
-        body: "✨ ব্লার ইফেক্ট দেওয়া হয়ে গেছে! 🔥",
+        body: {
+          blur: "✨ সুন্দর ব্লার হয়ে গেছে!",
+          blur2: "Strong ব্লার 🔥",
+          blur3: "পুরা ঝাপসা করে দিলাম!",
+          dream: "ড্রিমি লুক! মন ভরে গেলো না?",
+          ghost: "ভুত হয়ে গেলি তুই!"
+        }[cmd],
         attachment: fs.createReadStream(outputPath)
       }, event.threadID, () => fs.unlinkSync(outputPath));
 
     } catch (e) {
       console.log(e);
-      api.unsendMessage(waitMsg.messageID);
-      api.sendMessage("❌ কিছু একটা গড়বড় হয়েছে! আবার ট্রাই করো।", event.threadID);
+      api.unsendMessage(wait.messageID);
+      api.sendMessage("❌ কিছু গড়বড় হয়েছে! আবার ট্রাই করো।", event.threadID);
     }
   }
 };
