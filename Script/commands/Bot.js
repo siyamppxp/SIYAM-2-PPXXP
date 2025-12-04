@@ -190,7 +190,11 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
    if ((event.body.toLowerCase() == "tumi khaiso") || (event.body.toLowerCase() == "khaicho")) {
      return api.sendMessage("না ঝাং 🥹 তুমি রান্না করে রাখো আমি এসে খাবো <😘", threadID);
    };
-
+   
+   if ((event.body.toLowerCase() == "🙂‍↔️") || (event.body.toLowerCase() == "🙂‍↔️")) {
+     return api.sendMessage("এমন কর কেন কিছু খাইচ নাকি <😘", threadID);
+  
+    };
    if ((event.body.toLowerCase() == "tumi ki amake bhalobaso") || (event.body.toLowerCase() == "tmi ki amake vlo basho")) {
      return api.sendMessage("হুম ঝাং আমি তোমাকে রাইতে ভলোপাসি <🥵", threadID);
    };
