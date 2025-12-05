@@ -37,7 +37,7 @@ module.exports.run = async ({ event, api }) => {
       Object.keys(event.mentions)[0] || event.senderID;
 
     // 🔹 তোমার দেওয়া ইমগার ছবির URL
-    const bgUrl = "https://imgur.com/RYrjG6Q.jpeg";
+    const bgUrl = "https://imgur.com/qrvz14O.jpeg";
 
     // Canvas size (তোমার ইমগার ছবির উপর নির্ভর করে পরিবর্তন করা লাগলে জানিও)
     const canvas = Canvas.createCanvas(1024, 576);
@@ -57,7 +57,7 @@ module.exports.run = async ({ event, api }) => {
 
     // 🔹 মাথায় বসানোর অবস্থান (X, Y, Size)
     // চাইলে আমি এটা Adjust করে perfect করে দিতে পারি
-    ctx.drawImage(avatarImg, 375, 45, 180, 180);
+    ctx.drawImage(avatarImg, 390, 60, 150, 150);
 
     // Save final
     const buffer = canvas.toBuffer();
