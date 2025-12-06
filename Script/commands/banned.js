@@ -41,14 +41,26 @@ module.exports.run = async function({ api, event, args, getText }) {
     const UID = args[0];
     api.sendMessage(getText("fetching", UID), threadID, messageID);
 
-    try {
-        // 1️⃣ Get Player Name
-        const dangerRes = await axios.get(`https://danger-info-alpha.vercel.app/accinfo?uid=${UID}&key=DANGERxINFO`);
-        const playerName = escape_md(dangerRes.data.basicInfo?.nickname || "Unknown");
+    let playerName = "Unknown"; // default
+    let status = "Unknown";     // default
 
-        // 2️⃣ Get Ban Status
-        const banRes = await axios.get(`http://amin-team-api.vercel.app/check_banned?player_id=${UID}`);
-        const status = banRes.data.status || "Unknown";
+    try {
+        // 1️⃣ Try to get player name from Danger API
+        try {
+            const dangerRes = await axios.get(`https://danger-info-alpha.vercel.app/accinfo?uid=${UID}&key=DANGERxINFO`);
+            playerName = escape_md(dangerRes.data.basicInfo?.nickname || "Unknown");
+        } catch (err) {
+            // API down → use "Unknown"
+            playerName = "Unknown";
+        }
+
+        // 2️⃣ Try to get ban status
+        try {
+            const banRes = await axios.get(`http://amin-team-api.vercel.app/check_banned?player_id=${UID}`);
+            status = banRes.data.status || "Unknown";
+        } catch (err) {
+            status = "Unknown";
+        }
 
         // 3️⃣ Prepare message text
         const infoText = getText("result", playerName, UID, status);
@@ -66,13 +78,14 @@ module.exports.run = async function({ api, event, args, getText }) {
         const response = await axios.get(videoURL, { responseType: "arraybuffer" });
         fs.writeFileSync(videoPath, Buffer.from(response.data));
 
-        // 5️⃣ SEND TEXT + VIDEO TOGETHER IN ONE MESSAGE
+        // 5️⃣ Send text + video together
         api.sendMessage({
             body: finalText,
             attachment: fs.createReadStream(videoPath)
         }, threadID, () => fs.unlinkSync(videoPath));
 
     } catch (err) {
+        // Any unexpected error
         api.sendMessage(getText("error", err.message), threadID, messageID);
     }
 };
