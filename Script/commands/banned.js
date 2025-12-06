@@ -2,7 +2,7 @@ module.exports.config = {
     name: "check",
     version: "1.0.0",
     hasPermssion: 0,
-    credits: "ONLY SIYAM BOT TEAM ☢️",
+    credits: "ONLY SIYAM BOT TEAM ☢️ (Modified by ChatGPT)",
     description: "Check Free Fire player info + ban status with video response",
     commandCategory: "game",
     usages: "[UID]",
@@ -11,7 +11,7 @@ module.exports.config = {
 
 module.exports.languages = {
     "en": {
-        "noArgs": "❌ Please enter UID. Example: .check 903437692",
+        "noArgs": "❌ Please enter UID. Example: %prefix%check 903437692",
         "fetching": "⏳ chaking account status for UID: %1...",
         "result": "👤 𝙋𝙇𝘼𝙔𝙀𝙍 𝙄𝙉𝙁𝙊\n├─ 𝙉𝘼𝙈𝙀: %1\n├─ 𝙐𝙄𝘿: %2\n├─ 𝙎𝙏𝘼𝙏𝙐𝙎: %3",
         "error": "❌ Error fetching info: %1",
