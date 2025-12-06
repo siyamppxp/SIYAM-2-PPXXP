@@ -11,12 +11,12 @@ module.exports.config = {
 
 module.exports.languages = {
     "en": {
-        "noArgs": "❌ Please enter UID. Example: %prefix%check 903437692",
+        "noArgs": "❌ Please enter UID. Example: .check 903437692",
         "fetching": "⏳ chaking account status for UID: %1...",
-        "result": "🧑‍💻 Player Info\n├─ Name: %1\n├─ UID: %2\n├─ Status: %3",
+        "result": "👤 𝙋𝙇𝘼𝙔𝙀𝙍 𝙄𝙉𝙁𝙊\n├─ 𝙉𝘼𝙈𝙀: %1\n├─ 𝙐𝙄𝘿: %2\n├─ 𝙎𝙏𝘼𝙏𝙐𝙎: %3",
         "error": "❌ Error fetching info: %1",
-        "bannedText": "⚠️ Your Free Fire ID is *BANNED*.\n📹 Watch the video below for details.",
-        "notBannedText": "✅ Your Free Fire ID is *NOT BANNED*.\n📹 Watch the video below for details."
+        "bannedText": "⚠️ 𝚃𝙷𝙸𝚂 𝔽𝕣𝕖𝕖 𝔽𝕚𝕣𝕖 𝙰𝙲𝙲𝙾𝚄𝙽𝚃 𝙸𝚂 *𝐁𝐀𝐍𝐍𝐄𝐃*"
+        "notBannedText": "✅ 𝚃𝙷𝙸𝚂 𝔽𝕣𝕖𝕖 𝔽𝕚𝕣𝕖 𝙰𝙲𝙲𝙾𝚄𝙽𝚃 𝙸𝚂 *𝐍𝐎𝐓 𝐁𝐀𝐍𝐍𝐄𝐃*"
     }
 };
 
