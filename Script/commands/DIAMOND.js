@@ -126,16 +126,16 @@ or type "cancel"`;
       Date.now().toString().slice(-4);
 
     const receipt =
-`🎫 DIAMOND RECEIPT
+`💳 𝐃𝐈𝐀𝐌𝐎𝐍𝐃 𝐑𝐄𝐂𝐄𝐈𝐅𝐓
 
-👤 Player : ${playerName}
-🆔 UID     : ${uid}
-💎 Amount  : ${amount}
-🕒 Time    : ${now}
-🧾 Trx ID  : ${trxId}
-✅ Status  : SUCCESS
+👤 ᴘʟᴀʏᴇʀ : ${playerName}
+🆔 ᴜɪᴅ     : ${uid}
+💎 ᴀᴍᴏᴜɴᴛ  : ${amount}
+🕒 ᴛɪᴍᴇ    : ${now}
+🧾 ᴛʀx ɪᴅ  : ${trxId}
+✅ ꜱᴛᴀᴛᴜꜱ  : SUCCESS
 
-CREADIT: ONLY SIYAM.`;
+ᴄʀᴇᴀᴅɪᴛ: ᴏɴʟʏ ꜱɪʏᴀᴍ.`;
 
     // Save log
     try {
