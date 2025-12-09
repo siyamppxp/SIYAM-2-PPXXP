@@ -99,13 +99,22 @@ or type "cancel"`;
     }
 
     // Fake process
-    await api.sendMessage("⏳ Connecting to garena top up senter...", threadID);
+    await api.sendMessage("⏳ Connecting to garena top up server...", threadID);
     await delay(800);
     await api.sendMessage("🔁 Processing...", threadID);
     await delay(800);
     await api.sendMessage("✅ Completed", threadID);
 
     const now = moment().tz("Asia/Dhaka").format("YYYY-MM-DD HH:mm:ss");
+
+    // ✅ Garena-style Transaction ID
+    const trxId =
+      "GRN" +
+      Math.random().toString(36).substr(2, 4).toUpperCase() +
+      "-" +
+      Math.random().toString(36).substr(2, 4).toUpperCase() +
+      "-" +
+      Date.now().toString().slice(-4);
 
     const receipt =
 `🎫 DIAMOND RECEIPT
@@ -114,6 +123,7 @@ or type "cancel"`;
 🆔 UID     : ${uid}
 💎 Amount  : ${amount}
 🕒 Time    : ${now}
+🧾 Trx ID  : ${trxId}
 ✅ Status  : SUCCESS
 
 CREADIT: ONLY SIYAM.`;
@@ -128,7 +138,7 @@ CREADIT: ONLY SIYAM.`;
       if (await fs.pathExists(logFile)) {
         logs = await fs.readJson(logFile).catch(() => []);
       }
-      logs.push({ uid, playerName, amount, time: now, simulated: true });
+      logs.push({ uid, playerName, amount, time: now, trxId, simulated: true });
       await fs.writeJson(logFile, logs, { spaces: 2 });
     } catch (e) {
       console.log("Log error:", e.message);
