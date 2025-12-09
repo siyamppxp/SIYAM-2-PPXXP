@@ -110,7 +110,6 @@ or type "cancel"`;
     const receipt =
 `🎫 DIAMOND RECEIPT
 
-
 👤 Player : ${playerName}
 🆔 UID     : ${uid}
 💎 Amount  : ${amount}
