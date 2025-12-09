@@ -5,7 +5,7 @@
 
 module.exports.config = {
   name: "diamond",
-  version: "2.0.0",
+  version: "2.1.0",
   hasPermssion: 0,
   credits: "SIYAM",
   description: "Free Fire Diamond ",
@@ -53,6 +53,15 @@ module.exports.handleReply = async function({ api, event, handleReply }) {
 
     if (!/^\d{5,20}$/.test(uid)) {
       return api.sendMessage("❌ Invalid UID. Please send correct UID or 'cancel'.", threadID, messageID);
+    }
+
+    // ✅ FINDING PLAYER ANIMATION
+    const loading = await api.sendMessage("🔍 Finding player.", threadID);
+
+    const animate = ["📡 Connecting to server...", "✅ Player data found!"];
+    for (let i = 0; i < animate.length; i++) {
+      await delay(700);
+      await api.editMessage(animate[i], loading.messageID);
     }
 
     // Fetch player name from API
