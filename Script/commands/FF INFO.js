@@ -5,13 +5,13 @@ module.exports.config = {
     credits: "𝐎𝐍𝐋𝐘 𝐒𝐈𝐘𝐀𝐌 𝐁𝐎𝐓 𝑻𝑬𝑨𝑴_ ☢️",
     description: "Get Free Fire user info by Region + UID in structured style",
     commandCategory: "game",
-    usages: "[region] [UID]",
+    usages: "[region] [UID]  or  [UID]",
     cooldowns: 5
 };
 
 module.exports.languages = {
     "en": {
-        "noArgs": "❌ Please enter Region and UID. Example: %prefix%get bd 903437692",
+        "noArgs": "❌ Please enter UID. Example: %prefix%get 903437692 OR %prefix%get bd 903437692",
         "fetching": "⏳ Fetching info for UID: %1...",
         "error": "❌ Error fetching info: %1"
     }
@@ -27,11 +27,23 @@ module.exports.run = async function({ api, event, args, getText }) {
     const axios = require("axios");
     const { threadID, messageID } = event;
 
-    if (!args[0] || !args[1])
-        return api.sendMessage(getText("noArgs", { prefix: global.config.PREFIX }), threadID, messageID);
+    // ✅ DEFAULT REGION = BD
+    let region = "BD";
+    let UID = null;
 
-    const region = args[0].toUpperCase();
-    const UID = args[1];
+    // If user gives both region & UID
+    if (args.length >= 2) {
+        region = args[0].toUpperCase();
+        UID = args[1];
+    }
+    // If user gives only UID
+    else if (args.length === 1) {
+        region = "BD";
+        UID = args[0];
+    }
+    else {
+        return api.sendMessage(getText("noArgs", { prefix: global.config.PREFIX }), threadID, messageID);
+    }
 
     api.sendMessage(getText("fetching", UID), threadID, messageID);
 
@@ -100,7 +112,8 @@ module.exports.run = async function({ api, event, args, getText }) {
 ├─ BR Rank Public: ${s.brRankShow || "False"}
 ├─ CS Rank Public: ${s.csRankShow || "False"}
 └─ Bio: ${escape_md(s.signature || "None")}
-`;
+
+CREADIT: ONLY SIYAM`;
 
         api.sendMessage(msg, threadID, messageID);
 
