@@ -78,7 +78,7 @@ module.exports.run = async function({ api, event, args }) {
   const diff = now - db[UID].last;
   if (diff < 86400000) {
     const left = Math.ceil((86400000 - diff) / (1000 * 60 * 60));
-    return api.sendMessage(`⚠️ This Player Already Got Maximum Likes For Today.\nTry again after ${left} hour(s).`, threadID, messageID);
+    return api.sendMessage(`⏳ This UID already received likes.\nTry again after ${left} hour(s).`, threadID, messageID);
   }
 
   await api.sendMessage("⏳ Processing like request...", threadID);
