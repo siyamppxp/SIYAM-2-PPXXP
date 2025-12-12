@@ -22,28 +22,31 @@ module.exports.run = async ({ api, event, args }) => {
     const userMsg = args.join(" ").trim();
     const { threadID, messageID, senderID } = event;
 
-    if (!userMsg)
+    if (!userMsg) 
         return api.sendMessage("❌ Please type a message.\nExample: ai Who are you?", threadID, messageID);
 
-    // Initial AI thinking message
-    const sentMsg = await api.sendMessage(`🤖 AI Thinking...\n\n💬 Question: ${escape_md(userMsg)}`, threadID, messageID);
+    // Send "AI Thinking..." message
+    const thinkingMsg = await api.sendMessage(`🤖 AI Thinking...\n💬 Question: ${escape_md(userMsg)}`, threadID, messageID);
 
     try {
+        // API POST request
         const res = await axios.post(
             API_ENDPOINT,
             { message: userMsg, new_conversation: true, cookies: {} },
             { headers: { "Content-Type": "application/json" }, timeout: 20000 }
         );
 
-        const aiReply = res.data.message || "AI replied empty message.";
+        // Safe access to AI reply
+        const aiReply = res.data?.message || "🤖 AI replied empty message.";
 
+        // Send AI reply
         api.sendMessage(aiReply, threadID, (err, info) => {
             if (!err) {
-                // Track reply so conversation continues
+                // Track this message for onReply continuation
                 global.GoatBot.onReply.set(info.messageID, {
-                    commandName: module.exports.config.name,
+                    commandName: "ai",
                     author: senderID,
-                    conversationID: info.messageID // track this conversation
+                    conversationID: thinkingMsg.messageID
                 });
             }
         });
@@ -62,21 +65,22 @@ module.exports.onReply = async ({ api, event, Reply }) => {
 
     if (!Reply || senderID !== Reply.author) return;
 
-    const ask = body.trim();
+    const userMsg = body.trim();
 
     // Delete old tracking to prevent duplicates
     global.GoatBot.onReply.delete(messageID);
 
     try {
+        // Continue the conversation with new_conversation = false
         const res = await axios.post(
             API_ENDPOINT,
-            { message: ask, new_conversation: false, cookies: {} },
+            { message: userMsg, new_conversation: false, cookies: {} },
             { headers: { "Content-Type": "application/json" }, timeout: 20000 }
         );
 
-        const answer = res.data.message || "AI replied empty message.";
+        const aiReply = res.data?.message || "🤖 AI replied empty message.";
 
-        api.sendMessage(answer, threadID, (err, info) => {
+        api.sendMessage(aiReply, threadID, (err, info) => {
             if (!err) {
                 // Track reply again for next message
                 global.GoatBot.onReply.set(info.messageID, {
