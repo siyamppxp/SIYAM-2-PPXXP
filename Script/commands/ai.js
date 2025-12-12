@@ -1,106 +1,91 @@
 const axios = require("axios");
-const API_URL = "https://metakexbyneokex.fly.dev/chat";
+const API_ENDPOINT = "https://metakexbyneokex.fly.dev/chat";
 
-module.exports = {
-  config: {
+module.exports.config = {
     name: "ai",
-    version: "4.0",
-    role: 0,
-    author: "ONLY SIYAM 🐦",
-    description: "AI Chat using Meta AI API",
-    category: "AI",
-    usages: "/ai [your question]",
-    cooldowns: 2
-  },
+    version: "2.0",
+    hasPermssion: 0,
+    credits: "ONLY SIYAM BOT TEAM ☢️",
+    description: "Chat with Meta AI in structured format",
+    commandCategory: "AI",
+    usages: "[your question]",
+    cooldowns: 3
+};
 
-  onStart: async function ({ message, args, event }) {
-    const userMsg = args.join(" ");
-    const sender = event.senderID;
-    const sessionID = `session-${sender}`;
+// Markdown escape (same as GET bot)
+function escape_md(text) {
+    if (!text) return "None";
+    return text.toString().replace(/([_*[\]()~`>#+-=|{}.!])/g, "\\$1");
+}
 
-    // === No message → Show Example ===
-    if (!userMsg) {
-      return message.reply(
-        "🧠 META AI Assistant\n" +
-        "Type your question below ⬇️\n\n" +
-        "Example:\n  /ai Who is the founder of Free Fire?\n\n" +
-        "Now ask your question:\n  /ai Your question here"
-      );
-    }
+module.exports.run = async ({ api, event, args }) => {
+    const userMsg = args.join(" ").trim();
+    const { threadID, messageID, senderID } = event;
 
-    try {
-      const res = await axios.post(
-        API_URL,
-        {
-          message: userMsg,
-          new_conversation: true,
-          cookies: {}
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-          timeout: 20000
-        }
-      );
+    if (!userMsg)
+        return api.sendMessage("❌ Please type a message.\nExample: ai Who are you?", threadID, messageID);
 
-      const aiReply = res.data.message || "❌ AI returned an empty response.";
-
-      return message.reply(aiReply, (err, info) => {
-        if (info) {
-          global.GoatBot.onReply.set(info.messageID, {
-            commandName: this.config.name,
-            author: sender,
-            sessionID: sessionID
-          });
-        }
-      });
-    } catch (err) {
-      return message.reply(
-        `❌ META AI Error\n\n${
-          err.response?.status ? "Status: " + err.response.status : err.message
-        }`
-      );
-    }
-  },
-
-  onReply: async function ({ message, event, Reply }) {
-    const sender = event.senderID;
-    const userQuery = event.body?.trim();
-
-    if (sender !== Reply.author || !userQuery) return;
-
-    global.GoatBot.onReply.delete(Reply.messageID);
+    api.sendMessage(`🤖 AI Thinking...\n\n💬 Question: ${escape_md(userMsg)}`, threadID, messageID);
 
     try {
-      const res = await axios.post(
-        API_URL,
-        {
-          message: userQuery,
-          new_conversation: false,
-          cookies: {}
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-          timeout: 20000
-        }
-      );
+        const res = await axios.post(
+            API_ENDPOINT,
+            { message: userMsg, new_conversation: true, cookies: {} },
+            { headers: { "Content-Type": "application/json" }, timeout: 20000 }
+        );
 
-      const aiReply = res.data.message || "❌ AI could not reply.";
+        const aiReply = res.data.message || "AI replied empty message.";
 
-      return message.reply(aiReply, (err, info) => {
-        if (info) {
-          global.GoatBot.onReply.set(info.messageID, {
-            commandName: "ai",
-            author: sender,
-            sessionID: Reply.sessionID
-          });
-        }
-      });
-    } catch (err) {
-      return message.reply(
-        `❌ META AI Error\n\n${
-          err.response?.status ? "Status: " + err.response.status : err.message
-        }`
-      );
+        api.sendMessage(aiReply, threadID, (err, info) => {
+            if (!err) {
+                global.GoatBot.onReply.set(info.messageID, {
+                    commandName: module.exports.config.name,
+                    author: senderID,
+                    session: true
+                });
+            }
+        });
+
+    } catch (e) {
+        api.sendMessage(
+            `❌ AI ERROR\n➤ ${e?.response?.status ? "Server Error " + e.response.status : e.message}`,
+            threadID,
+            messageID
+        );
     }
-  }
+};
+
+module.exports.onReply = async ({ api, event, Reply }) => {
+    const { senderID, threadID, messageID, body } = event;
+
+    if (senderID !== Reply.author) return;
+
+    const ask = body.trim();
+    global.GoatBot.onReply.delete(messageID);
+
+    try {
+        const res = await axios.post(
+            API_ENDPOINT,
+            { message: ask, new_conversation: false, cookies: {} },
+            { headers: { "Content-Type": "application/json" }, timeout: 20000 }
+        );
+
+        const answer = res.data.message || "AI replied empty message.";
+
+        api.sendMessage(answer, threadID, (err, info) => {
+            if (!err) {
+                global.GoatBot.onReply.set(info.messageID, {
+                    commandName: "ai",
+                    author: senderID
+                });
+            }
+        });
+
+    } catch (e) {
+        api.sendMessage(
+            `❌ AI ERROR\n➤ ${e?.response?.status ? "Server Error " + e.response.status : e.message}`,
+            threadID,
+            messageID
+        );
+    }
 };
